@@ -1,0 +1,140 @@
+#!/bin/bash
+
+echo ""
+echo "╔════════════════════════════════════════════════════════════════╗"
+echo "║            Let's Find Who The Hell Is This Owner               ║"
+echo "╚════════════════════════════════════════════════════════════════╝"
+echo ""
+echo "whois looking up (if not run maybe not installed in your OS)"
+whois $TARGET
+echo "whois looking up finished"
+echo ""
+echo "nslooking up (if not run maybe not installed in your OS)"
+nslookup $TARGET
+echo "nslooking up finished"
+echo ""
+echo "scanning with nmap (if not run maybe not installed in your OS)"
+nmap -v -O $TARGET
+echo "scanning with nmap finished"
+echo ""
+echo "starting the harvester for gathering email and subdomain information"
+python Module/theHarvester/theHarvester.py -d $TARGET -l 500 -b google
+echo "the harvester finished"
+echo ""
+echo "starting metagoofil for gathering document maybe important"
+python Module/metagoofil/metagoofil.py -d $TARGET -t doc,pdf,xls,csv,txt -l 200 -n 50 -o metagoofiles -f data.html
+echo "metagoofil finished"
+echo ""
+echo "starting dnsrecon for gathering DNS record "
+python Module/dnsrecon/dnsrecon.py -d $TARGET
+echo "dnsrecon finished"
+echo ""
+dig -x $TARGET
+python Module/sublist3r/sublist3r.py --domain $TARGET
+echo ""
+echo "╔════════════════════════════════════════════════════════════════╗"
+echo "║                    Got It :v wkwkwkwkwk                        ║"
+echo "╚════════════════════════════════════════════════════════════════╝"
+echo ""
+echo "╔════════════════════════════════════════════════════════════════╗"
+echo "║             Web Application Firewall Scanning Starting         ║"
+echo "╚════════════════════════════════════════════════════════════════╝"
+echo ""
+echo "scanning WAF with wafw00f"
+wafw00f http://$TARGET
+echo "scanning finished next..."
+echo ""
+echo "try bypass WAF with wafninja"
+./wafninja bypass -u "http://$TARGET/index.php" -p "Name=PAYLOAD&Submit=Submit" -c "phpsessid=value" -t xss -o output.html
+echo "moving wafninja bypass output to /root/desktop"
+cp output.html /root/desktop/wafninja-bypass.output.html
+echo ""
+echo ""
+echo "╔════════════════════════════════════════════════════════════════╗"
+echo "║             Web Application Firewall Scanning Finished         ║"
+echo "╚════════════════════════════════════════════════════════════════╝"
+echo ""
+echo "╔════════════════════════════════════════════════════════════════╗"
+echo "║                   XSS Scanning Starting                        ║"
+echo "╚════════════════════════════════════════════════════════════════╝"
+echo ""
+python Module/XssPy.py -u $TARGET -v
+echo "╔════════════════════════════════════════════════════════════════╗"
+echo "║                   XSS Scanning Finished                        ║"
+echo "╚════════════════════════════════════════════════════════════════╝"
+echo ""
+echo "╔════════════════════════════════════════════════════════════════╗"
+echo "║              Web / CMS Vulnerability Scanning Starting         ║"
+echo "╚════════════════════════════════════════════════════════════════╝"
+echo "checking web with whatweb (if not run maybe not installed in your OS)"
+./Module/WhatWeb/whatweb $TARGET
+echo ""
+echo ""
+echo "checking web with spaghetti"
+python Module/Spaghetti/spaghetti.py --url http://$TARGET --scan [0-3]
+echo ""
+echo "╔════════════════════════════════════════════════════════════════╗"
+echo "║                   Scan Wordpress Starting                      ║"
+echo "╚════════════════════════════════════════════════════════════════╝"
+echo "start scanning wpscan.rb (if not run maybe not installed in your OS)"
+wpscan --url http://$TARGET --enumerate u
+echo ""
+echo "If Your OS Doesn't Have WPScan"
+echo "Dont Worry Dude I Have Alternative Scanner For You"
+echo "Next Time Use Kali Linux if you want this tool work perfectly "
+echo ""
+python Module/wpscanner.py -s http://$TARGET -n 20
+droopescan scan wordpress -u http://$TARGET
+python Module/WPSeku/wpseku.py --target http://$TARGET
+echo "╔════════════════════════════════════════════════════════════════╗"
+echo "║                   Scan Wordpress Finished                      ║"
+echo "╚════════════════════════════════════════════════════════════════╝"
+echo ""
+echo ""
+echo "╔════════════════════════════════════════════════════════════════╗"
+echo "║                   Scan Joomla Starting                         ║"
+echo "╚════════════════════════════════════════════════════════════════╝"
+echo "start scanning"
+./joomscan -u http://$TARGET
+droopescan scan joomla -u http://$TARGET
+echo "╔════════════════════════════════════════════════════════════════╗"
+echo "║                   Scan Joomla Finished                         ║"
+echo "╚════════════════════════════════════════════════════════════════╝"
+echo ""
+echo "╔════════════════════════════════════════════════════════════════╗"
+echo "║                   Scan Other CMS Starting                      ║"
+echo "╚════════════════════════════════════════════════════════════════╝"
+echo ""
+echo ""
+echo "scan drupal cms"
+droopescan scan drupal -u http://$TARGET
+echo "scan dupal cms finished next...."
+echo ""
+echo "scan silverstripe cms"
+droopescan scan silverstripe -u http://$TARGET
+echo "scan silverstripe cms finished next..... "
+echo ""
+echo "scan moodle cms"
+droopescan scan moodle -u http://$TARGET
+echo "scan moodle cms finished next..... "
+echo ""
+echo ""
+echo "╔════════════════════════════════════════════════════════════════╗"
+echo "║                   Scan Other CMS Finished                      ║"
+echo "╚════════════════════════════════════════════════════════════════╝"
+echo ""
+echo "╔════════════════════════════════════════════════════════════════╗"
+echo "║             Web / CMS Vulnerability Scanning Finished          ║"
+echo "╚════════════════════════════════════════════════════════════════╝"
+echo ""
+echo "╔════════════════════════════════════════════════════════════════╗"
+echo "║                   SSL Vulnerability Scanning Starting          ║"
+echo "╚════════════════════════════════════════════════════════════════╝"
+echo "starting sslscan (if not run maybe not installed in your OS)"
+sslscan $TARGET
+echo "sslscan finished let's use another way"
+echo ""
+echo "starting sslyze (if not run maybe not installed in your OS)"
+sslyze --resum --certinfo=basic --compression --reneg --sslv2 --sslv3 --hide_rejected_ciphers $TARGET
+echo "sslyze finished let's change side"
+echo ""
